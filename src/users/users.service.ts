@@ -4,7 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import Users from 'src/entities/users.entity'
-
+import * as bcrypt from 'bcrypt'
 
 
 @Injectable()
@@ -16,7 +16,15 @@ export class UsersService {
   ) { }
 
   async create(createUserDto: CreateUserDto) {
-    const user = this.userRepository.create(createUserDto);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+    // ساخت یوزر جدید با پسورد هش شده
+    const user = this.userRepository.create({
+      ...createUserDto,
+      password: hashedPassword,  // قرار دادن پسورد هش شده
+    });
+
+    // ذخیره یوزر در دیتابیس
     return await this.userRepository.save(user);
   }
 
@@ -33,6 +41,11 @@ export class UsersService {
     if (!user) {
       throw new Error('User not found');
     }
+
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
     Object.assign(user, updateUserDto);
     return this.userRepository.save(user);
   }
