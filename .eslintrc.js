@@ -22,6 +22,7 @@ module.exports = {
   },
   ignorePatterns: ['.eslintrc.js', 'dist/**', 'node_modules/**'],
   rules: {
+    
     // قوانین نام‌گذاری متغیرها
     'camelcase': ['error', { properties: 'always' }],  // استفاده از camelCase برای نام‌گذاری متغیرها
     '@typescript-eslint/naming-convention': [
