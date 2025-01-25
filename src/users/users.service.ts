@@ -76,7 +76,12 @@ export class UsersService {
   }
 
   async findOne(id: number) {
-    return this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({ where: { id } });
+    
+    if (!user) {
+      throw new HttpException('user not founded' , 404)
+    }
+    return user
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
