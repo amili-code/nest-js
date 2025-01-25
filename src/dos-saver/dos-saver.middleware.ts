@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express'
+import { Request, Response, NextFunction } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -8,7 +8,7 @@ export class DosSaverMiddleware implements NestMiddleware {
   private readonly MAX_REQUESTS = 100; // حداکثر تعداد درخواست مجاز در بازه زمانی
   private readonly TIME_WINDOW = 60 * 60 * 1000; // بازه زمانی به میلی‌ثانیه (اینجا 1 ساعت)
   private readonly STORAGE_FILE = path.join(__dirname, 'requests.json'); // مسیر فایل JSON
- 
+
   constructor() {
     // اطمینان از وجود فایل ذخیره‌سازی
     if (!fs.existsSync(this.STORAGE_FILE)) {
@@ -46,7 +46,6 @@ export class DosSaverMiddleware implements NestMiddleware {
     // ادامه پردازش درخواست
     next();
   }
-
 
   private loadRequestData(): Record<string, { count: number; firstRequestTime: number }> {
     try {
