@@ -4,7 +4,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Users from 'src/entities/users.entity';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt'
+import { user } from './dto/user.dto';
 
 
 @Injectable()
@@ -12,12 +14,13 @@ export class UsersService {
   constructor(
     @InjectRepository(Users)
     private readonly userRepository: Repository<Users>,
+    private readonly jwtService: JwtService,
   ) { }
 
   async register(createUserDto: CreateUserDto) {
     const checkUser = await this.findOneByUserName(createUserDto.user_name)
     if (checkUser) {
-      throw new HttpException('username already exits', 400)
+      throw new HttpException('user already exits', 400)
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -32,11 +35,33 @@ export class UsersService {
     await this.userRepository.save(user);
 
 
+    return this.createAccessToken(user)
 
-    return
+  }
+
+
+  createAccessToken(user: user) {
+    const accessToken = this.jwtService.sign({
+      sub: user.id,
+      userName:user.user_name
+    })
+    return {
+      accessToken:accessToken
+    }
   }
 
   async login(createUserDto: CreateUserDto) {
+    const user = await this.findOneByUserName(createUserDto.user_name)
+    if (!user) {
+      throw new HttpException('user not founded', 404)
+    }
+    console.log(user);
+    const isPasswordMatch = await bcrypt.compare(createUserDto.password, user.password)
+    if (!isPasswordMatch) {
+      throw new HttpException('login error', 400)
+    }
+
+    return this.createAccessToken(user)
 
   }
 
@@ -46,7 +71,7 @@ export class UsersService {
   }
 
   async findOneByUserName(user_name: string) {
-    const user = await this.userRepository.findOne({ where: { user_name } })
+    const user = await this.userRepository.findOne({ where: { user_name }, select: ['user_name', 'password'] })
     return user;
   }
 
